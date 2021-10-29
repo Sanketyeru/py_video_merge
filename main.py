@@ -13,7 +13,7 @@ import numpy as np
 parser = argparse.ArgumentParser()
 parser.add_argument("--videos","-v",metavar='N', type=str, nargs='+',help='Videos paths. All videos should have same video legth and shape',required=False)
 parser.add_argument("--conf","-c",type=str,help='RowxColumn e.g. 3x4')
-parser.add_argument("--resize","-r",type=bool,help='Resize output frame',required=False)
+parser.add_argument("--maintain_asp","-m",type=str,help='Maintain asp output frame',required=False)
 args = parser.parse_args()
 
 row,column = args.conf.split("x")
@@ -30,10 +30,15 @@ height = int(caps[0].get(4))
 
 dim  = ()
 
-if args.resize == None:
-    dim = (width*column,height*row)
-else:
+args.maintain_asp = args.maintain_asp.lower() in ['true','yes','1']  
+
+if args.maintain_asp:
     dim = (width,height)
+else:
+    dim = (width*column,height*row)
+
+
+print(f"Output dim: {dim}")
 
 out = cv2.VideoWriter(f"comb_video.avi",cv2.VideoWriter_fourcc('M','J','P','G'), 30, dim)
 
@@ -72,7 +77,7 @@ while True:
 
     img = np.concatenate(rows_images,axis=0)
     resized = img
-    if not args.resize == None:
+    if args.maintain_asp:
         resized = cv2.resize(resized, (width,height), interpolation = cv2.INTER_AREA)
     
     cv2.imshow("Combined Video",resized)
